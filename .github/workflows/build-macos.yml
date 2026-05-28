@@ -22,8 +22,6 @@ jobs:
             runner: macos-15-intel
             suffix: mac-intel
 
-    env:
-      PLAYWRIGHT_BROWSERS_PATH: "0"
 
     steps:
       - name: Checkout
