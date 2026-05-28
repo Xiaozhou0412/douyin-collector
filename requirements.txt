@@ -1,0 +1,7 @@
+numpy
+opencv-python
+openpyxl
+pillow
+playwright
+pyinstaller
+requests
