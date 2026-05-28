@@ -1,0 +1,62 @@
+name: Build macOS package
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  build-macos:
+    name: macOS ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-15
+            suffix: mac-arm64
+          - arch: intel
+            runner: macos-15-intel
+            suffix: mac-intel
+
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: "0"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m playwright install chromium
+
+      - name: Build executable
+        run: |
+          python -m PyInstaller \
+            --noconfirm \
+            --onedir \
+            --name "抖音采集工具" \
+            --collect-all playwright \
+            --collect-data cv2 \
+            --hidden-import openpyxl.cell._writer \
+            collect_douyin.py
+
+      - name: Prepare release zip
+        run: python build_release.py --platform macos --suffix "${{ matrix.suffix }}"
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: 抖音采集工具_${{ matrix.suffix }}
+          path: release/抖音采集工具_${{ matrix.suffix }}.zip
+          if-no-files-found: error
